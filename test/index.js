@@ -50,39 +50,65 @@ describe('find in line',function() {
     ];
     
     
+	it('can inc dec', function() {
+        var iD = mod.getIncFuncDecFunc();
+        expect(iD.dec()).to.equal(true);
+        var iD2 = mod.getIncFuncDecFunc();
+        iD2.inc();
+        expect(iD2.dec()).to.equal(false);
+        iD2.inc();
+        iD2.inc();
+        expect(iD2.dec()).to.equal(false);
+        iD2.inc();
+        expect(iD2.dec()).to.equal(false);
+        expect(iD2.dec()).to.equal(false);
+        expect(iD2.dec()).to.equal(true);
+	});
+    
 	it('can find backwards', function() {
-        expect(mod.searchLine(text1[3], 'om', -1, 15)).to.eql(7);
+        var iD = mod.getIncFuncDecFunc();
+        expect(mod.searchLine(text1[3], 'om', 'om', -1, 15, iD.dec, iD.inc)).to.eql(7);
+	});
+    
+	it('can handle inc dec', function() {
+        var iD = mod.getIncFuncDecFunc();
+        expect(mod.searchLine('if (  (cars) && (bus)  ) {', '(', ')', -1, 14, iD.dec, iD.inc)).to.eql(4);
 	});
 	
 	it('can find backwards (start)', function() {
-        expect(mod.searchLine(text1[0], 'd', -1, 7)).to.eql(1);
+        var iD = mod.getIncFuncDecFunc();
+        expect(mod.searchLine(text1[0], 'd', 'd', -1, 7, iD.dec, iD.inc)).to.eql(1);
 	});
 	
 	it('can find forwards (end)', function() {
-        expect(mod.searchLine(text1[0], '{', 1, 1)).to.eql(43);
+        var iD = mod.getIncFuncDecFunc();
+        expect(mod.searchLine(text1[0], '{',  '}',  1, 1, iD.dec, iD.inc)).to.eql(43);
 	});
 	
 	it('can fail to find backwards', function() {
-        expect(mod.searchLine(text1[3], 'ox', -1, 15)).to.eql(false);
+        var iD = mod.getIncFuncDecFunc();
+        expect(mod.searchLine(text1[3], 'ox', 'ox', -1, 15, iD.dec, iD.inc)).to.eql(false);
 	});
 	
 	it('can find forwards', function() {
-        expect(mod.searchLine(text1[0], 'mo', 1, 1)).to.eql(35);
+        var iD = mod.getIncFuncDecFunc();
+        expect(mod.searchLine(text1[0], 'mo', 'mo', 1, 1, iD.dec, iD.inc)).to.eql(35);
 	});
 	
 	it('can fail to find forwards', function() {
-        expect(mod.searchLine(text1[3], 'ox', 1, 1)).to.eql(false);
+        var iD = mod.getIncFuncDecFunc();
+        expect(mod.searchLine(text1[3], 'ox', 'ox', 1, 1, iD.dec, iD.inc)).to.eql(false);
 	});
     
     it('can search a file backwards', function() {
         expect(
-            mod.searchFile(text1, 'r Com', -1, {line: 10, ch: 1})
+            mod.searchFile(text1, 'r Com', 'r Com', -1, {line: 10, ch: 1})
         ).to.eql({line: 3, ch: 7});
     });
     
     it('can search a file forwards', function() {
         expect(
-            mod.searchFile(text1, 'DocumentManager =', 1, {line: 0, ch: 0})
+            mod.searchFile(text1, 'DocumentManager =', 'DocumentManager =', 1, {line: 0, ch: 0})
         ).to.eql(
             {line: 4, ch: 4}
         );
@@ -90,13 +116,13 @@ describe('find in line',function() {
     
     it('can search a file backwards and find things at EOL', function() {
         expect(
-            mod.searchFile(text1, ';', -1, {line: 3, ch: 1})
+            mod.searchFile(text1, ';', ';', -1, {line: 3, ch: 1})
         ).to.eql({line: 1, ch: 13});
     });
     
     it('can search a file forwards and find things at BOL', function() {
         expect(
-            mod.searchFile(text1, '"', 1, {line: 0, ch: 0})
+            mod.searchFile(text1, '"', '"', 1, {line: 0, ch: 0})
         ).to.eql(
             {line: 1, ch: 0}
         );

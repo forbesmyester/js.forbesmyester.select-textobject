@@ -1,4 +1,4 @@
-/*global window, define, DocumentManager, EditorManager, CommandManager, Menus, brackets */
+/*global window, define, brackets */
 
 /** Simple extension that adds a "File > Hello World" menu item */
 define(function (/* require, exports, module */) {
@@ -11,32 +11,45 @@ define(function (/* require, exports, module */) {
         EditorManager = brackets.getModule("editor/EditorManager");
     
     // ============================================================================
+    var LINE_START = true;
+    var LINE_END = false;
 
-    var LINE_START = true,
-        LINE_END = false;
+    var getIncFuncDecFunc = function() {
+        var r = 1
+        var dec = function() {
+            if (--r == 0) { return true; }
+            return false;
+        }
+        var inc = function() {
+            r++;
+            return false;
+        }
+        return  { inc: inc, dec: dec };
+    };
 
-    var searchLine = function(text, forStr, direc, startPos) {
+    var searchLine = function(text, decStr, incStr, direc, startPos, decFunc, incFunc) {
 
-        var pos = direc < 1 ? startPos - forStr.length : startPos,
-            other = pos + (direc * forStr.length);
+        var pos = direc < 1 ? startPos - incStr.length : startPos,
+            other = pos + (direc * incStr.length);
 
         if (startPos === LINE_START) {
             pos = 0;
         }
 
-        if (startPos === LINE_END) {
-            pos = text.length - forStr.length;
+        if (startPos === LINE_END) { 
+            pos = text.length - incStr.length;
         }
 
         while (
             (pos >= 0)  &&
-            (pos <= text.length - forStr.length)
+            (pos <= text.length - incStr.length)
         ) {
-            other = pos + forStr.length;
+            other = pos + incStr.length;
             var ss = text.substring(pos, other);
-            if (ss === forStr) {
+            if ((ss === decStr) && decFunc()) {
                 return direc < 1 ? other : pos;
             }
+            if (ss === incStr) { incFunc(); }
             pos = pos + direc;
         }
 
@@ -44,10 +57,11 @@ define(function (/* require, exports, module */) {
 
     };
 
-    var searchFile = function(texts, forStr, direc, cursor) {
+    var searchFile = function(texts, decStr, incStr, direc, cursor) {
 
-        var line = cursor.line;
-        var pos;
+        var line = cursor.line,
+            pos,
+            incDecFunc = getIncFuncDecFunc();
 
         var getSearchStartPos = function() {
             if (line === cursor.line) {
@@ -62,9 +76,12 @@ define(function (/* require, exports, module */) {
         while ((line > -1) && (line < texts.length)) {
             pos = searchLine(
                 texts[line],
-                forStr,
+                decStr,
+                incStr,
                 direc,
-                getSearchStartPos(line)
+                getSearchStartPos(line),
+                incDecFunc.dec,
+                incDecFunc.inc
             );
             if (pos !== false) {
                 return { line: line, ch: pos };
@@ -93,7 +110,7 @@ define(function (/* require, exports, module */) {
                 if (pairs[i][j] == input.substr(input.length -1)) {
                     return {
                         enc: [pairs[i][0], pairs[i][1]],
-                        ins: getInside((j === 1), input)
+                        ins: getInside((j === 1))
                     };
                 }
             }
@@ -105,8 +122,10 @@ define(function (/* require, exports, module */) {
     var getTextObjectCursors = function(texts, input, cursor) {
 
         var lr = getLeftRight(input),
-            beginning = searchFile(texts, lr.enc[0], -1, cursor),
-            end = searchFile(texts, lr.enc[1], 1, cursor);
+            beginning = searchFile(texts, lr.enc[0], lr.enc[1], -1, cursor),
+            end = searchFile(texts, lr.enc[1], lr.enc[0], 1, cursor);
+
+        console.log([beginning, end]);
 
         if ((beginning === false) || (end === false)) {
             return false;
@@ -120,6 +139,7 @@ define(function (/* require, exports, module */) {
         return [beginning, end];
     };
 
+    // ============================================================================
 
     function handleHelloWorld() {
 
@@ -139,8 +159,7 @@ define(function (/* require, exports, module */) {
         );
 
     }
-    // ============================================================================
-
+    
     // First, register a command - a UI-less object associating an id to a handler
     var MY_COMMAND_ID = "forbesmyester.select-textobject";   // package-style naming to avoid collisions
     CommandManager.register("Hello World", MY_COMMAND_ID, handleHelloWorld);
