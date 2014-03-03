@@ -1,6 +1,6 @@
 {
 	"globals": {
-		"module": false,
+		"exports": true,
 		"require": false,
 		"define": false
 	},

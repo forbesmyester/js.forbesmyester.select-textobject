@@ -8,7 +8,7 @@
 		// Node. Does not work with strict CommonJS, but
 		// only CommonJS-like enviroments that support module.exports,
 		// like Node.
-		module.exports = factory(
+		exports = factory(
 			require('expect.js'),
 			require('../index.js')
 		);
@@ -37,6 +37,7 @@ describe('find in line',function() {
         '// ============================================================================',
         'function handleHelloWorld() {',
         '    var pairs = [',
+        '        ["{", "}"],',
         '        ["(", ")"],',
         '        ["<", ">"],',
         '        ["\'", "\'"],',
@@ -114,6 +115,14 @@ describe('find in line',function() {
         );
     });
     
+    it('can search a file with a skip', function() {
+        expect(
+            mod.searchFile(text1, '=', '=', 1, {line: 4, ch: 10}, 3)
+        ).to.eql(
+            {line: 6, ch: 18}
+        );
+    });
+    
     it('can search a file backwards and find things at EOL', function() {
         expect(
             mod.searchFile(text1, ';', ';', -1, {line: 3, ch: 1})
@@ -129,23 +138,65 @@ describe('find in line',function() {
     });
     
     it('can get left right enclosers', function() {
-        expect(mod.getLeftRight('{')).to.eql({enc: ['{', '}'], ins: true});
-        expect(mod.getLeftRight('}')).to.eql({enc: ['{', '}'], ins: false});
-        expect(mod.getLeftRight('i[')).to.eql({enc: ['[', ']'], ins: true});
-        expect(mod.getLeftRight('a[')).to.eql({enc: ['[', ']'], ins: false});
-        expect(mod.getLeftRight('i]')).to.eql({enc: ['[', ']'], ins: true});
-        expect(mod.getLeftRight('a]')).to.eql({enc: ['[', ']'], ins: false});
-        expect(mod.getLeftRight('a')).to.eql({enc: ['a', 'a'], ins: true});
+        expect(mod.getLeftRight('{')).to.eql({
+            enc: ['{', '}'],
+            a: false,
+            skip: 1
+        });
+        expect(mod.getLeftRight('i[')).to.eql({
+            enc: ['[', ']'],
+            a: false,
+            skip: 1
+        });
+        expect(mod.getLeftRight('a[')).to.eql({
+            enc: ['[', ']'],
+            a: true,
+            skip: 1
+        });
+        expect(mod.getLeftRight('i]')).to.eql({
+            enc: ['[', ']'],
+            a: false,
+            skip: 1
+        });
+        expect(mod.getLeftRight('a]')).to.eql({
+            enc: ['[', ']'],
+            a: true,
+            skip: 1
+        });
+        expect(mod.getLeftRight('a')).to.eql({
+            enc: ['a', 'a'],
+            a: false,
+            skip: 1
+        });
+        expect(mod.getLeftRight('i')).to.eql({
+            enc: ['i', 'i'],
+            a: false,
+            skip: 1
+        });
     });
 	
-    it('find cursors', function() {
+    it('find cursors n deep', function() {
         expect(
             mod.getTextObjectCursors(
                 text1,
-                '{',
-                {line: 13, ch: 0}
+                mod.getLeftRight('2{'),
+                {line: 12, ch: 14}
             )
-        ).to.eql([{line: 10, ch: 29}, {line: 20, ch: 0}]);
+        ).to.eql([{line: 10, ch: 29}, {line: 21, ch: 0}]);
+        expect(
+            mod.getTextObjectCursors(
+                text1,
+                mod.getLeftRight('a2{'),
+                {line: 12, ch: 14}
+            )
+        ).to.eql([{line: 10, ch: 28}, {line: 21, ch: 1}]);
+        expect(
+            mod.getTextObjectCursors(
+                text1,
+                mod.getLeftRight('{'),
+                {line: 12, ch: 14}
+            )
+        ).to.eql([{line: 12, ch: 11}, {line: 12, ch: 15}]);
     });
 });
 
