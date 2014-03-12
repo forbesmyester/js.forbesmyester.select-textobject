@@ -2,11 +2,13 @@
 (function (root, factory) {
 	"use strict";
 	if (typeof exports === 'object') {
+        /* global exports: true */
 		// Node. Does not work with strict CommonJS, but
 		// only CommonJS-like enviroments that support module.exports,
 		// like Node.
 		exports = factory();
 	} else if (typeof define === 'function' && define.amd) {
+        /* global define: false */
 		// AMD. Register as an anonymous module.
 		define(factory);
 	} else {
@@ -34,31 +36,48 @@
     };
 
     var searchLine = function(text, decStr, incStr, direc, startPos, decFunc, incFunc) {
-
-        var pos = direc < 1 ? startPos - incStr.length : startPos,
-            other = pos + (direc * incStr.length);
-
-        if (startPos === LINE_START) {
-            pos = 0;
-        }
-
-        if (startPos === LINE_END) { 
-            pos = text.length - incStr.length;
-        }
-
-        while (
-            (pos >= 0)  &&
-            (pos <= text.length - incStr.length)
-        ) {
-            other = pos + incStr.length;
-            var ss = text.substring(pos, other);
-            if ((ss === decStr) && decFunc()) {
-                return direc < 1 ? other : pos;
+        var range = (function() {
+                var r = [0, text.length];
+                if (direc == -1) {
+                    r[1] = (startPos === LINE_END) ? text.length : startPos;
+                } else {
+                    r[0] = (startPos === LINE_START) ? 0 : startPos;
+                }
+                return r;
+            }()),
+            escapeRegExp = function(string) {
+                return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+            },
+            prepend = direc > 0 ? "^" : "",
+            append = direc < 1 ? "$" : "",
+            reDecStr = (decStr instanceof RegExp) ? decStr : new RegExp(prepend + escapeRegExp(decStr) + append),
+            reIncStr = (incStr instanceof RegExp) ? incStr : new RegExp(prepend + escapeRegExp(incStr) + append),
+            limit = 9999,
+            m;
+        
+        while ((range[0] != range[1]) && (--limit > 0)) {
+            
+            if ((m = text.substring(range[0], range[1]).match(reDecStr)) && decFunc()) {
+                return {
+                    ch: direc > 0 ? range[0] : m.index,
+                    len: m[0].length
+                };
             }
-            if ((incStr !== decStr) && (ss === incStr)) { incFunc(); }
-            pos = pos + direc;
+            
+            if (
+                (incStr !== decStr) &&
+                (text.substring(range[0], range[1]).match(reIncStr))
+            ) {
+                incFunc();
+            }
+            
+            if (direc > 0) {
+                range[0] = range[0] + 1;
+            } else {
+                range[1] = range[1] - 1;
+            }
         }
-
+        
         return false;
 
     };
@@ -90,6 +109,8 @@
                 incDecFunc.inc
             );
             if (pos !== false) {
+                pos.line = line;
+                return pos;
                 return { line: line, ch: pos };
             }
             line = line + direc;
@@ -141,8 +162,8 @@
             return false;
         }
 
-        beginning.len = lr.enc[0].length;
-        end.len = lr.enc[1].length;
+        //beginning.len = lr.enc[0].length;
+        //end.len = lr.enc[1].length;
         
         return [beginning, end];
     };
@@ -155,9 +176,12 @@
         
         var m = function(o, left) {
             if (lr.a) {
-                return {line: o.line, ch: o.ch + (o.len * (left ? -1 : 1))};
+                return {
+                    line: o.line,
+                    ch: o.ch + (!left ? o.len : 0)
+                };
             }
-            return {line: o.line, ch: o.ch};
+            return {line: o.line, ch: o.ch + (left ? o.len : 0)};
         };
         
         return [m(r[0], true), m(r[1], false)];
