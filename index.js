@@ -111,7 +111,6 @@
             if (pos !== false) {
                 pos.line = line;
                 return pos;
-                return { line: line, ch: pos };
             }
             line = line + direc;
         }
