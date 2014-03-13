@@ -77,8 +77,8 @@ describe('find in line',function() {
         var iD = mod.getIncFuncDecFunc();
         expect(mod.searchLine(
             text1[3],
-            /\s+$/,
-            /\s+$/,
+            '\\s+',
+            '\\s+',
             -1,
             7,
             iD.dec,
@@ -92,8 +92,8 @@ describe('find in line',function() {
         var iD = mod.getIncFuncDecFunc();
         expect(mod.searchLine(
             text1[3],
-            /^\s+/,
-            /^\s+/,
+            '\\s+',
+            '\\s+',
             1,
             7,
             iD.dec,
@@ -108,8 +108,8 @@ describe('find in line',function() {
         expect(
             mod.searchLine(
                 'if (  (cars) && (bus)  ) {',
-                '(',
-                ')',
+                '\\(',
+                '\\)',
                 -1,
                 14,
                 iD.dec,
@@ -125,7 +125,7 @@ describe('find in line',function() {
 	
 	it('can find forwards (end)', function() {
         var iD = mod.getIncFuncDecFunc();
-        expect(mod.searchLine(text1[0], '{',  '}',  1, 1, iD.dec, iD.inc)).to.eql({ch: 43, len: 1});
+        expect(mod.searchLine(text1[0], '\\{',  '\\}',  1, 1, iD.dec, iD.inc)).to.eql({ch: 43, len: 1});
 	});
 	
 	it('can fail to find backwards', function() {
@@ -181,27 +181,17 @@ describe('find in line',function() {
     
     it('can get left right enclosers', function() {
         expect(mod.getLeftRight('{')).to.eql({
-            enc: ['{', '}'],
+            enc: ['\\{', '\\}'],
             a: false,
             skip: 1
         });
         expect(mod.getLeftRight('i[')).to.eql({
-            enc: ['[', ']'],
+            enc: ['\\[', '\\]'],
             a: false,
             skip: 1
         });
         expect(mod.getLeftRight('a[')).to.eql({
-            enc: ['[', ']'],
-            a: true,
-            skip: 1
-        });
-        expect(mod.getLeftRight('i]')).to.eql({
-            enc: ['[', ']'],
-            a: false,
-            skip: 1
-        });
-        expect(mod.getLeftRight('a]')).to.eql({
-            enc: ['[', ']'],
+            enc: ['\\[', '\\]'],
             a: true,
             skip: 1
         });
@@ -216,11 +206,11 @@ describe('find in line',function() {
             skip: 1
         });
         expect(mod.getLeftRight('iB')).to.eql({
-            enc: ['{', '}'],
+            enc: ['\\{', '\\}'],
             a: false,
             skip: 1
         });
-        expect(mod.getLeftRight('iW').enc[0].source).to.eql('(^|\\s+)$');
+        expect(mod.getLeftRight('iW').enc[0]).to.eql('(^$|\\s+)');
     });
 	
     it('find cursors n deep', function() {

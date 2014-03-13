@@ -45,31 +45,30 @@
                 }
                 return r;
             }()),
-            escapeRegExp = function(string) {
-                return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
-            },
             prepend = direc > 0 ? "^" : "",
             append = direc < 1 ? "$" : "",
-            reDecStr = (decStr instanceof RegExp) ? decStr : new RegExp(prepend + escapeRegExp(decStr) + append),
-            reIncStr = (incStr instanceof RegExp) ? incStr : new RegExp(prepend + escapeRegExp(incStr) + append),
+            reDecStr = new RegExp(prepend + (decStr) + append),
+            reIncStr = new RegExp(prepend + (incStr) + append),
             limit = 9999,
-            m;
+            m,
+            justDecremented;
         
         while ((range[0] != range[1]) && (--limit > 0)) {
             
-            if (
-                (m = text.substring(range[0], range[1]).match(reDecStr)) &&
-                decFunc()
-            ) {
-                return {
-                    ch: direc > 0 ? range[0] : m.index,
-                    len: m[0].length
-                };
+            justDecremented = false;
+            
+            if (m = text.substring(range[0], range[1]).match(reDecStr)) {
+                justDecremented = true;
+                if (decFunc()) {
+                    return {
+                        ch: direc > 0 ? range[0] : m.index,
+                        len: m[0].length
+                    };
+                }
             }
             
             if (
-                (typeof incStr === 'string') &&
-                (incStr !== decStr) &&
+                (!justDecremented) &&
                 (text.substring(range[0], range[1]).match(reIncStr))
             ) {
                 incFunc();
@@ -133,21 +132,24 @@
 
     var getLeftRight = function(input) {
         
-        var pairs = [
-                ["{", "}"],
-                ["(", ")"],
-                ["[", "]"],
-                ["<", ">"],
-                [">", "<"],
-                ['"', '"'],
-                ['`', '`'],
-                ["'", "'"]
-            ],
+        var res = {
+                "{": ["\\{", "\\}"],
+                "(": ["\\(", "\\)"],
+                "[": ["\\[", "\\]"],
+                "<": ["<", ">"],
+                ">": [">", "<"],
+                '"': ['"', '"'],
+                "`": ['`', '`'],
+                "'": ["'", "'"],
+                "w": ["\\W+", "\\W+"],
+                "W": ["(^$|\\s+)", "(^$|\\s+)"],
+                "s": ["\\.\\s+", "\\.+"],
+                "B": ["\\{", "\\}"],
+                "l": ["^\\s*", "$"]
+            },
             matches,
             skip,
-            motion,
-            i,
-            j,
+            needle,
             k,
             a;
         
@@ -157,14 +159,6 @@
         //  * indent
         //  * p=paragraph
         //  * f=file
-        
-        var res = {
-            w: [/\W+$/, /^\W+/],
-            W: [/(^|\s+)$/, /^($|\s+)/],
-            s: [/\.\s+$/, /^\.+/],
-            B: ["{", "}"],
-            l: [/^\s*$/, /^$/]
-        };
         
         matches = input.match(/^([ia]?)([0-9]?)(.*)/);
         if (
@@ -186,22 +180,10 @@
         
         skip = parseInt(matches[2], 10);
         a = matches[1] == 'a' ? true : false;
-        motion = matches[3];
-
-        for (j=0; j<=1; j++) {
-            for (i=0; i<pairs.length; i++) {
-                if (pairs[i][j] == motion) {
-                    return {
-                        skip: skip,
-                        enc: [pairs[i][0], pairs[i][1]],
-                        a: a
-                    };
-                }
-            }
-        }
+        needle = matches[3];
         
         for (k in res) { if (res.hasOwnProperty(k)) {
-            if (motion == k) {
+            if (needle == k) {
                 return {
                     skip: skip,
                     enc: [res[k][0], res[k][1]],
@@ -212,7 +194,7 @@
 
         return {
             skip: skip,
-            enc: [motion, motion],
+            enc: [needle, needle],
             a: a
         };
     };
