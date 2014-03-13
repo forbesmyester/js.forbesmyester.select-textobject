@@ -57,7 +57,10 @@
         
         while ((range[0] != range[1]) && (--limit > 0)) {
             
-            if ((m = text.substring(range[0], range[1]).match(reDecStr)) && decFunc()) {
+            if (
+                (m = text.substring(range[0], range[1]).match(reDecStr)) &&
+                decFunc()
+            ) {
                 return {
                     ch: direc > 0 ? range[0] : m.index,
                     len: m[0].length
@@ -65,6 +68,7 @@
             }
             
             if (
+                (typeof incStr === 'string') &&
                 (incStr !== decStr) &&
                 (text.substring(range[0], range[1]).match(reIncStr))
             ) {
@@ -78,6 +82,16 @@
             }
         }
         
+        if (
+            (m = text.substring(range[0], range[1]).match(reDecStr)) &&
+            decFunc()
+        ) {
+            return {
+                ch: direc > 0 ? range[0] : m.index,
+                len: m[0].length
+            };
+        }
+            
         return false;
 
     };
@@ -118,52 +132,114 @@
     };
 
     var getLeftRight = function(input) {
-        var pairs = [
-            ["{", "}"],
-            ["(", ")"],
-            ["[", "]"],
-            ["<", ">"],
-            [">", "<"],
-            ['"', '"'],
-            ["'", "'"]
-        ];
         
-        var skip = (function() {
-            var m = input.match(/([0-9]+).+/);
-            return m ? m[1] : 1;
-        }());
+        var pairs = [
+                ["{", "}"],
+                ["(", ")"],
+                ["[", "]"],
+                ["<", ">"],
+                [">", "<"],
+                ['"', '"'],
+                ['`', '`'],
+                ["'", "'"]
+            ],
+            matches,
+            skip,
+            motion,
+            i,
+            j,
+            k,
+            a;
+        
+        // TODO: 
+        //  * t<>=tag
+        //  * argument
+        //  * indent
+        //  * p=paragraph
+        //  * f=file
+        
+        var res = {
+            w: [/\W+$/, /^\W+/],
+            W: [/(^|\s+)$/, /^($|\s+)/],
+            s: [/\.\s+$/, /^\.+/],
+            B: ["{", "}"],
+            l: [/^\s*$/, /^$/]
+        };
+        
+        matches = input.match(/^([ia]?)([0-9]?)(.*)/);
+        if (
+            (matches[1] === '') &&
+            (matches[2] === '') &&
+            (matches[3] === '')
+        ) {
+            return false;
+        }
+        while (matches[3] === '') {
+            matches.unshift(''); matches.pop();
+        }
+        if (matches[1] === '') {
+            matches[1] = 'i';
+        }
+        if (!matches[2].match(/^[0-9]+$/)) {
+            matches[2] = '1';
+        }
+        
+        skip = parseInt(matches[2], 10);
+        a = matches[1] == 'a' ? true : false;
+        motion = matches[3];
 
-        for (var j=0; j<=1; j++) {
-            for (var i=0; i<pairs.length; i++) {
-                if (pairs[i][j] == input.substr(input.length -1)) {
+        for (j=0; j<=1; j++) {
+            for (i=0; i<pairs.length; i++) {
+                if (pairs[i][j] == motion) {
                     return {
                         skip: skip,
                         enc: [pairs[i][0], pairs[i][1]],
-                        a: (input.substr(0, 1) === 'a')
+                        a: a
                     };
                 }
             }
         }
+        
+        for (k in res) { if (res.hasOwnProperty(k)) {
+            if (motion == k) {
+                return {
+                    skip: skip,
+                    enc: [res[k][0], res[k][1]],
+                    a: a,
+                };
+            }
+        } }
 
         return {
             skip: skip,
-            enc: [input.substr(input.length-1), input.substr(input.length-1)],
-            a: ((input.length > 1) && (input.substr(0, 1) === 'a'))
+            enc: [motion, motion],
+            a: a
         };
     };
 
     var getBeginningEndCursors = function(texts, lr, cursor) {
 
-        var beginning = searchFile(texts, lr.enc[0], lr.enc[1], -1, cursor, lr.skip),
-            end = searchFile(texts, lr.enc[1], lr.enc[0], 1, cursor, lr.skip);
+        var beginning = searchFile(
+                texts,
+                lr.enc[0],
+                lr.enc[1],
+                -1,
+                cursor,
+                lr.skip
+            ),
+            end = searchFile(
+                texts,
+                lr.enc[1],
+                lr.enc[0],
+                1,
+                cursor,
+                lr.skip
+            );
 
         if ((beginning === false) || (end === false)) {
             return false;
         }
 
-        //beginning.len = lr.enc[0].length;
-        //end.len = lr.enc[1].length;
-        
         return [beginning, end];
     };
     

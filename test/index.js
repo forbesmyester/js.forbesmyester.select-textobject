@@ -73,6 +73,36 @@ describe('find in line',function() {
         );
 	});
     
+	it('can find backwards (regexp)', function() {
+        var iD = mod.getIncFuncDecFunc();
+        expect(mod.searchLine(
+            text1[3],
+            /\s+$/,
+            /\s+$/,
+            -1,
+            7,
+            iD.dec,
+            iD.inc
+        )).to.eql(
+            {ch: 3, len: 1}
+        );
+	});
+    
+	it('can find forwards (regexp)', function() {
+        var iD = mod.getIncFuncDecFunc();
+        expect(mod.searchLine(
+            text1[3],
+            /^\s+/,
+            /^\s+/,
+            1,
+            7,
+            iD.dec,
+            iD.inc
+        )).to.eql(
+            {ch: 18, len: 1}
+        );
+	});
+    
 	it('can handle inc dec', function() {
         var iD = mod.getIncFuncDecFunc();
         expect(
@@ -185,6 +215,12 @@ describe('find in line',function() {
             a: false,
             skip: 1
         });
+        expect(mod.getLeftRight('iB')).to.eql({
+            enc: ['{', '}'],
+            a: false,
+            skip: 1
+        });
+        expect(mod.getLeftRight('iW').enc[0].source).to.eql('(^|\\s+)$');
     });
 	
     it('find cursors n deep', function() {
@@ -209,6 +245,24 @@ describe('find in line',function() {
                 {line: 12, ch: 14}
             )
         ).to.eql([{line: 12, ch: 11}, {line: 12, ch: 15}]);
+    });
+    it('find by regexp (1)', function() {
+        expect(
+            mod.getTextObjectCursors(
+                text1,
+                mod.getLeftRight('w'),
+                {line: 3, ch: 25}
+            )
+        ).to.eql([{line: 3, ch: 21}, {line: 3, ch: 29}]);
+    });
+    it('find by regexp (2)', function() {
+        expect(
+            mod.getTextObjectCursors(
+                text1,
+                mod.getLeftRight('W'),
+                {line: 1, ch: 8}
+            )
+        ).to.eql([{line: 1, ch: 5}, {line: 1, ch: 13}]);
     });
 });
 
