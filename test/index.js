@@ -118,6 +118,33 @@ describe('find in line',function() {
         ).to.eql({ch: 3, len: 1});
 	});
 	
+	it('can process tags', function() {
+        var iD = mod.getIncFuncDecFunc();
+        expect(
+            mod.searchLine(
+                '<body><p><span class="a">hi there <a href="#"><span>click here</span></a></span></p></body>',
+                '<a[^>]*>',
+                "</a>",
+                -1,
+                60,
+                iD.dec,
+                iD.inc
+            )
+        ).to.eql({ch: 34, len: 12});
+        iD = mod.getIncFuncDecFunc();
+        expect(
+            mod.searchLine(
+                '<body><p><span class="a">hi there <a href="#"><span>click here</span></a></span></p></body>',
+                "</a>",
+                '<a[^>]*>',
+                1,
+                60,
+                iD.dec,
+                iD.inc
+            )
+        ).to.eql({ch: 69, len: 4});
+	});
+	
 	it('can find backwards (start)', function() {
         var iD = mod.getIncFuncDecFunc();
         expect(mod.searchLine(text1[0], 'd', 'd', -1, 7, iD.dec, iD.inc)).to.eql({ch: 0, len: 1});
@@ -211,6 +238,16 @@ describe('find in line',function() {
             skip: 1
         });
         expect(mod.getLeftRight('iW').enc[0]).to.eql('(^$|\\s+)');
+        expect(mod.getLeftRight('<a')).to.eql({
+            enc: ['<a[^>]*>', "</a>"],
+            a: false,
+            skip: 1
+        });
+        expect(mod.getLeftRight('t')).to.eql({
+            enc: ['<[^>]*>', "</>"],
+            a: false,
+            skip: 1
+        });
     });
 	
     it('find cursors n deep', function() {

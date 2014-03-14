@@ -191,6 +191,20 @@
                 };
             }
         } }
+        
+        if (matches[3] == 't') {
+            matches[3] = '<[a-zA-Z]+';
+        }
+        
+        if (matches[3].substr(0, 1) === '<') {
+            return {
+                skip: skip,
+                enc: ['<TAG[^>]*>', "</TAG>"].map(function(s) {
+                        return s.replace('TAG', matches[3].substr(1));
+                    }),
+                a: a
+            };
+        }
 
         return {
             skip: skip,
