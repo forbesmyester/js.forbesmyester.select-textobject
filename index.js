@@ -193,7 +193,7 @@
         } }
         
         if (matches[3] == 't') {
-            matches[3] = '<[a-zA-Z]+';
+            matches[3] = '<[a-zA-Z0-9]+';
         }
         
         if (matches[3].substr(0, 1) === '<') {
