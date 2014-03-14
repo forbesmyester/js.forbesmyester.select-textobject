@@ -1,7 +1,7 @@
 {
   "name": "brackets.io.forbesmyester.select-textobject",
-  "version": "0.9.1",
-  "description": "brackets.io surround",
+  "version": "0.9.2",
+  "description": "Brackets.io select textobject (like vim): Supports `i{`, `a[`, `2<` `<span` etc, does not support paragraphs and non code like text-objects",
   "author": "Matthew Forrester <matt@keyboardwritescode.com>",
   "dependencies": {
     "requirejs": "~2.1.10"
