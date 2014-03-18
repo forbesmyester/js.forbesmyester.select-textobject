@@ -16,11 +16,14 @@ define(function (require /*, exports, module */) {
     
     function handleHelloWorld() {
 
-        var docTexts = DocumentManager.getCurrentDocument().getText().split("\n");
+        var docTexts = DocumentManager.getCurrentDocument().getText().split("\n"),
+            lrCursors = ind.getLeftRight(window.prompt("TextObject:", ""));
+
+        if (lrCursors === false) { return false; }
 
         var r = ind.getTextObjectCursors(
             docTexts,
-            ind.getLeftRight(window.prompt("TextObject:", "")),
+            lrCursors,
             EditorManager.getCurrentFullEditor().getCursorPos()
         );
         

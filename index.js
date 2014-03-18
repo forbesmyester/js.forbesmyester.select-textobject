@@ -57,6 +57,7 @@
             
             justDecremented = false;
             
+            /* jshint -W084 */
             if (m = text.substring(range[0], range[1]).match(reDecStr)) {
                 justDecremented = true;
                 if (decFunc()) {
@@ -66,6 +67,7 @@
                     };
                 }
             }
+            /* jshint +W084 */
             
             if (
                 (!justDecremented) &&
@@ -145,7 +147,7 @@
                 "W": ["(^$|\\s+)", "(^$|\\s+)"],
                 "s": ["\\.\\s+", "\\.+"],
                 "B": ["\\{", "\\}"],
-                "l": ["^\\s*", "$"]
+                "l": ["^\\s*$", "^\\s*$"]
             },
             matches,
             skip,

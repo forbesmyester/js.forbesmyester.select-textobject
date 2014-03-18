@@ -291,6 +291,15 @@ describe('find in line',function() {
             )
         ).to.eql([{line: 1, ch: 5}, {line: 1, ch: 13}]);
     });
+    it('find line by regexp (3)', function() {
+        expect(
+            mod.getTextObjectCursors(
+                text1,
+                mod.getLeftRight('l'),
+                {line: 1, ch: 8}
+            )
+        ).to.eql([{line: 1, ch: 0}, {line: 1, ch: 13}]);
+    });
 });
 
 }));
