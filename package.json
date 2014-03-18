@@ -6,7 +6,7 @@
   "dependencies": {
   },
   "devDependencies": {
-    "requirejs": "~2.1.10"
+    "requirejs": "~2.1.10",
     "jquery": "~2.1.0-beta3",
     "expect.js": "0.2.x",
     "mocha": "1.8.x",
