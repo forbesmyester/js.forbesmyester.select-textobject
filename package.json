@@ -1,6 +1,7 @@
 {
   "name": "brackets.io.forbesmyester.select-textobject",
-  "version": "0.9.3",
+  "title": "Rubbish VIM Select TextObject Clone",
+  "version": "0.9.4",
   "description": "Brackets.io select textobject (like vim): Supports `i{`, `a[`, `2<` `<span` etc, does not support paragraphs and non code like text-objects",
   "author": "Matthew Forrester <matt@keyboardwritescode.com>",
   "dependencies": {

@@ -244,7 +244,7 @@ describe('find in line',function() {
             skip: 1
         });
         expect(mod.getLeftRight('t')).to.eql({
-            enc: ['<[^>]*>', "</>"],
+            enc: ['<[a-zA-Z0-9]+[^>]*>', '</[a-zA-Z0-9]+>'],
             a: false,
             skip: 1
         });

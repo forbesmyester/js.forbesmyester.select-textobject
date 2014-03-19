@@ -1,4 +1,4 @@
-/*global window, define, brackets */
+/*global define: false, brackets: false, $: false */
 
 /** Simple extension that adds a "File > Hello World" menu item */
 define(function (require /*, exports, module */) {
@@ -8,34 +8,60 @@ define(function (require /*, exports, module */) {
     var CommandManager = brackets.getModule("command/CommandManager"),
         DocumentManager = brackets.getModule("document/DocumentManager"),
         Menus = brackets.getModule("command/Menus"),
+        Dialogs         = brackets.getModule("widgets/Dialogs"),
         EditorManager = brackets.getModule("editor/EditorManager");
     
 
     var ind = require('index');
     
+    var getInput = function(cb) {
+        // Based on code from Patrick Edelman, but made worse!
+        Dialogs.showModalDialogUsingTemplate([
+            '<div class="jxkfdasjrejj">',
+            '<input type="text" placeholder="Enter a TextObject" autofocus="true" id="jxkfdasjrejj"/><br/>',
+            '</div>'
+        ].join(' '));
+        $('#jxkfdasjrejj').keypress(function (e) {
+            if (e.which === 13) {
+                var _c = $('#jxkfdasjrejj').val();
+                e.preventDefault();
+
+                if (_c === null) {
+                    return;
+                }
+                $('.jxkfdasjrejj').fadeOut(300);
+                Dialogs.cancelModalDialogIfOpen('jxkfdasjrejj');
+                cb(_c);
+            }
+        });
+    };
+
     
     function handleHelloWorld() {
 
-        var docTexts = DocumentManager.getCurrentDocument().getText().split("\n"),
-            lrCursors = ind.getLeftRight(window.prompt("TextObject:", ""));
+        getInput(function(input) {
 
-        if (lrCursors === false) { return false; }
+            var docTexts = DocumentManager.getCurrentDocument().getText().split("\n"),
+                lrCursors = ind.getLeftRight(input);
 
-        var r = ind.getTextObjectCursors(
-            docTexts,
-            lrCursors,
-            EditorManager.getCurrentFullEditor().getCursorPos()
-        );
-        
-        if (r === false) { return false; }
+            if (lrCursors === false) { return false; }
 
-        EditorManager.getCurrentFullEditor().setSelection(
-            r[0],
-            r[1],
-            true,
-            0
-        );
+            var r = ind.getTextObjectCursors(
+                docTexts,
+                lrCursors,
+                EditorManager.getCurrentFullEditor().getCursorPos()
+            );
 
+            if (r === false) { return false; }
+
+            EditorManager.getCurrentFullEditor().setSelection(
+                r[0],
+                r[1],
+                true,
+                0
+            );
+
+        });
     }
     
     // First, register a command - a UI-less object associating an id to a handler
