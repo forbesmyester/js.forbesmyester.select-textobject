@@ -61,6 +61,8 @@ define(function (require /*, exports, module */) {
                 0
             );
 
+            EditorManager.focusEditor();
+
         });
     }
     
